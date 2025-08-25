@@ -4,14 +4,28 @@ const API_URL = window.API_URL || 'https://ai-learning-hub-backend.onrender.com/
 
 // API Helper Functions
 const ApiService = {
+  // Get stored API key
+  getApiKey() {
+    const user = JSON.parse(localStorage.getItem('aiHub_currentUser') || '{}');
+    return user.apiKey || null;
+  },
+
   // Generic fetch wrapper
   async request(endpoint, options = {}) {
     try {
+      const apiKey = this.getApiKey();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+      
+      // Add API key if available
+      if (apiKey) {
+        headers['x-api-key'] = apiKey;
+      }
+      
       const response = await fetch(`${API_URL}${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers
-        },
+        headers,
         ...options
       });
       
