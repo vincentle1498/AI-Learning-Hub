@@ -4,7 +4,15 @@ require('dotenv').config();
 let db = null;
 let client = null;
 
+// Use file-based DB on Render if MongoDB fails
+const useFileDB = process.env.USE_FILE_DB === 'true';
+
 const connectDB = async () => {
+  // If forced to use file DB or on Render with connection issues
+  if (useFileDB || (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI)) {
+    const fileDB = require('./db-file');
+    return await fileDB.connectDB();
+  }
   try {
     if (db) return db;
     
@@ -48,6 +56,15 @@ const connectDB = async () => {
     console.error('❌ MongoDB connection failed:');
     console.error('Error name:', error.name);
     console.error('Error message:', error.message);
+    
+    // Fallback to file-based DB on Render
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🔄 Falling back to file-based database...');
+      const fileDB = require('./db-file');
+      db = await fileDB.connectDB();
+      return db;
+    }
+    
     if (error.code) console.error('Error code:', error.code);
     if (error.codeName) console.error('Code name:', error.codeName);
     console.error('Full error:', error);
@@ -83,6 +100,10 @@ const createIndexes = async () => {
 };
 
 const getDB = () => {
+  if (useFileDB || (process.env.NODE_ENV === 'production' && !client)) {
+    const fileDB = require('./db-file');
+    return fileDB.getDB();
+  }
   if (!db) {
     throw new Error('Database not initialized. Call connectDB first.');
   }
