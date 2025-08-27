@@ -17,6 +17,9 @@ const connectDB = async () => {
     client = new MongoClient(uri, {
       serverSelectionTimeoutMS: 30000, // 30 seconds timeout
       socketTimeoutMS: 30000,
+      tls: true,
+      tlsAllowInvalidCertificates: false,
+      tlsAllowInvalidHostnames: false,
     });
     
     await client.connect();
