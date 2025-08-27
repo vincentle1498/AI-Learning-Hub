@@ -10,10 +10,17 @@ const connectDB = async () => {
     
     const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-learning-hub';
     
-    client = new MongoClient(uri);
+    // Log connection attempt (hide password)
+    const sanitizedUri = uri.replace(/:([^@]+)@/, ':****@');
+    console.log('🔄 Attempting to connect to MongoDB:', sanitizedUri);
+    
+    client = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 30000, // 30 seconds timeout
+      socketTimeoutMS: 30000,
+    });
     
     await client.connect();
-    console.log('✅ Connected to MongoDB');
+    console.log('✅ Connected to MongoDB successfully');
     
     db = client.db();
     
@@ -22,7 +29,12 @@ const connectDB = async () => {
     
     return db;
   } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
+    console.error('❌ MongoDB connection failed:');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    if (error.code) console.error('Error code:', error.code);
+    if (error.codeName) console.error('Code name:', error.codeName);
+    console.error('Full error:', error);
     process.exit(1);
   }
 };

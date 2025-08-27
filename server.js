@@ -602,6 +602,14 @@ app.use((err, req, res, next) => {
 // Start server with MongoDB connection
 const startServer = async () => {
   try {
+    // Check for MongoDB URI
+    if (!process.env.MONGODB_URI) {
+      console.warn('⚠️  WARNING: MONGODB_URI not found in environment variables');
+      console.log('📝 Using default MongoDB URI (localhost)');
+    } else {
+      console.log('✅ MONGODB_URI environment variable found');
+    }
+    
     await connectDB();
     
     app.listen(PORT, () => {
