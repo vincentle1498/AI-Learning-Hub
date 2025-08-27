@@ -18,15 +18,17 @@ const connectDB = async () => {
     console.log('🔄 Attempting to connect to MongoDB:', sanitizedUri);
     console.log('📍 Node version:', process.version);
     
-    // Add SSL bypass for Render deployment
-    const options = {
-      tls: true,
-      tlsAllowInvalidCertificates: true,
-      tlsAllowInvalidHostnames: true,
-      serverSelectionTimeoutMS: 30000,
-      connectTimeoutMS: 30000,
-      socketTimeoutMS: 30000
-    };
+    // Use compatibility options for MongoDB Atlas on Render
+    const options = {};
+    
+    // For standard mongodb:// connection strings
+    if (uri.startsWith('mongodb://')) {
+      options.tls = true;
+      options.tlsAllowInvalidCertificates = true;
+      options.tlsAllowInvalidHostnames = true;
+      options.ssl = true;
+      options.sslValidate = false;
+    }
     
     client = new MongoClient(uri, options);
     
