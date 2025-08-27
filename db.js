@@ -10,10 +10,7 @@ const connectDB = async () => {
     
     const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-learning-hub';
     
-    client = new MongoClient(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    client = new MongoClient(uri);
     
     await client.connect();
     console.log('✅ Connected to MongoDB');
