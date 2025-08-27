@@ -18,11 +18,17 @@ const connectDB = async () => {
     console.log('🔄 Attempting to connect to MongoDB:', sanitizedUri);
     console.log('📍 Node version:', process.version);
     
-    // Use compatibility options for Node 16.x
-    client = new MongoClient(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    // Add SSL bypass for Render deployment
+    const options = {
+      tls: true,
+      tlsAllowInvalidCertificates: true,
+      tlsAllowInvalidHostnames: true,
+      serverSelectionTimeoutMS: 30000,
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 30000
+    };
+    
+    client = new MongoClient(uri, options);
     
     await client.connect();
     console.log('✅ Connected to MongoDB successfully');
