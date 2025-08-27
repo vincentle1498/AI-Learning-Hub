@@ -16,8 +16,13 @@ const connectDB = async () => {
     // Log connection attempt (hide password)
     const sanitizedUri = uri.replace(/:([^@]+)@/, ':****@');
     console.log('🔄 Attempting to connect to MongoDB:', sanitizedUri);
+    console.log('📍 Node version:', process.version);
     
-    client = new MongoClient(uri);
+    // Use compatibility options for Node 16.x
+    client = new MongoClient(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
     
     await client.connect();
     console.log('✅ Connected to MongoDB successfully');
