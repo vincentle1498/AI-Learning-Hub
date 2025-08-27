@@ -10,24 +10,27 @@ const connectDB = async () => {
     
     let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-learning-hub';
     
-    // Remove appName parameter if present (can cause SSL issues)
-    uri = uri.replace(/&appName=[^&]*/, '').replace(/\?appName=[^&]*&/, '?').replace(/\?appName=[^&]*$/, '');
-    
     // Log connection attempt (hide password)
     const sanitizedUri = uri.replace(/:([^@]+)@/, ':****@');
     console.log('🔄 Attempting to connect to MongoDB:', sanitizedUri);
     console.log('📍 Node version:', process.version);
     
-    // Use compatibility options for MongoDB Atlas on Render
-    const options = {};
+    // Render-compatible options for MongoDB Atlas
+    const options = {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4, // Force IPv4
+      authSource: 'admin',
+      tls: true,
+      tlsAllowInvalidCertificates: false, // Use valid certs for Atlas
+      retryWrites: true,
+      w: 'majority'
+    };
     
-    // For standard mongodb:// connection strings
-    if (uri.startsWith('mongodb://')) {
-      options.tls = true;
-      options.tlsAllowInvalidCertificates = true;
-      options.tlsAllowInvalidHostnames = true;
-      options.ssl = true;
-      options.sslValidate = false;
+    // For mongodb+srv:// use default SSL
+    if (uri.startsWith('mongodb+srv://')) {
+      delete options.tls;
+      delete options.tlsAllowInvalidCertificates;
     }
     
     client = new MongoClient(uri, options);
