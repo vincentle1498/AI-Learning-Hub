@@ -8,19 +8,16 @@ const connectDB = async () => {
   try {
     if (db) return db;
     
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-learning-hub';
+    let uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ai-learning-hub';
+    
+    // Remove appName parameter if present (can cause SSL issues)
+    uri = uri.replace(/&appName=[^&]*/, '').replace(/\?appName=[^&]*&/, '?').replace(/\?appName=[^&]*$/, '');
     
     // Log connection attempt (hide password)
     const sanitizedUri = uri.replace(/:([^@]+)@/, ':****@');
     console.log('🔄 Attempting to connect to MongoDB:', sanitizedUri);
     
-    client = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 30000, // 30 seconds timeout
-      socketTimeoutMS: 30000,
-      tls: true,
-      tlsAllowInvalidCertificates: false,
-      tlsAllowInvalidHostnames: false,
-    });
+    client = new MongoClient(uri);
     
     await client.connect();
     console.log('✅ Connected to MongoDB successfully');
