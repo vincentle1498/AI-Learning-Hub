@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: ['https://ai-learning-hubs.netlify.app', 'http://localhost:3000'],
+  origin: ['https://ai-learning-hubs.netlify.app', 'https://ailearninghubs.netlify.app', 'http://localhost:3000'],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
