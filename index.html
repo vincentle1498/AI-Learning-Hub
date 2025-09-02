@@ -6856,6 +6856,14 @@
     
     <!-- API Integration -->
     <script>
+        // Clear any existing conflicting variables from cached files
+        if (typeof API_URL !== 'undefined') {
+            console.warn('Clearing cached API_URL variable');
+        }
+        if (typeof ApiService !== 'undefined') {
+            console.warn('Clearing cached ApiService object');
+        }
+        
         // API Configuration
         window.AI_HUB_API_URL = 'https://ai-learning-hub-api.onrender.com/api';
 
