@@ -10,6 +10,7 @@
     <meta property="og:description" content="Advanced AI Learning Platform">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     
     <style>
         * { 
@@ -2817,10 +2818,6 @@
                 const isOwner = APP_STATE.currentUser && 
                     (discussion.authorId === APP_STATE.currentUser.id || discussion.author === APP_STATE.currentUser.username);
                 
-                // Debug logging
-                console.log('Discussion:', discussion.title, 'Author ID:', discussion.authorId, 'Author:', discussion.author);
-                console.log('Current User:', APP_STATE.currentUser ? APP_STATE.currentUser.username : 'Not logged in', 'ID:', APP_STATE.currentUser ? APP_STATE.currentUser.id : 'None');
-                console.log('Is Owner:', isOwner);
                 
                 return `
                     <div class="card" style="margin-bottom: 1rem; position: relative;">
