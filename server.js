@@ -46,8 +46,21 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'AI Learning Hub API is running',
+    version: 'simple-backend-v2.0',
+    server_type: 'in-memory-backend',
     discussions_count: discussions.length,
-    projects_count: projects.length
+    projects_count: projects.length,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test endpoint to verify deployment
+app.get('/api/test', (req, res) => {
+  res.json({
+    test: 'SUCCESS',
+    message: 'New simple backend is deployed and working!',
+    discussions_available: discussions.length > 0,
+    endpoints_working: true
   });
 });
 
