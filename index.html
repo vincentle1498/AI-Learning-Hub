@@ -956,7 +956,7 @@
                     </div>
                 </div>
                 
-                <button class="btn btn-primary" id="auth-btn" onclick="showAuthModal()">Sign In</button>
+                <button class="btn btn-primary" id="auth-btn" onclick="showAuthMenu()">Sign In</button>
             </div>
         </div>
     </nav>
@@ -2578,37 +2578,97 @@
         // ============================================
         // AUTHENTICATION
         // ============================================
-        function showAuthModal() {
-            const modal = createModal('Sign In', `
-                <form onsubmit="handleAuth(event)">
+        function showAuthModal(mode = 'login') {
+            const isLogin = mode === 'login';
+            const title = isLogin ? 'Sign In' : 'Create Account';
+            
+            const modal = createModal(title, `
+                <form onsubmit="handleAuth(event, '${mode}')">
                     <div class="form-group">
                         <label>Username</label>
-                        <input type="text" id="auth-username" required minlength="3" maxlength="20">
+                        <input type="text" id="auth-username" required minlength="3" maxlength="20" 
+                               placeholder="Enter your username">
                     </div>
                     
+                    ${!isLogin ? `
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="auth-email" required>
+                        <input type="email" id="auth-email" required placeholder="Enter your email">
                     </div>
+                    ` : ''}
                     
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" id="auth-password" required minlength="6">
+                        <input type="password" id="auth-password" required minlength="6" 
+                               placeholder="Enter your password">
                     </div>
                     
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        Sign In / Register
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
+                        ${isLogin ? 'Sign In' : 'Create Account'}
                     </button>
+                    
+                    <div style="text-align: center; font-size: 0.875rem;">
+                        ${isLogin ? 
+                            `Don't have an account? <a href="#" onclick="closeModal(); showAuthModal('signup')" style="color: var(--primary);">Sign Up</a>` :
+                            `Already have an account? <a href="#" onclick="closeModal(); showAuthModal('login')" style="color: var(--primary);">Sign In</a>`
+                        }
+                    </div>
                 </form>
             `);
         }
         
-        function handleAuth(event) {
+        async function handleAuth(event, mode) {
             event.preventDefault();
             
-            const username = document.getElementById('auth-username').value;
-            const email = document.getElementById('auth-email').value;
+            const username = document.getElementById('auth-username').value.trim();
+            const email = mode === 'signup' ? document.getElementById('auth-email')?.value.trim() : '';
+            const password = document.getElementById('auth-password').value;
             
+            try {
+                let response;
+                
+                if (mode === 'signup') {
+                    // Register new user
+                    console.log('🚀 Attempting user registration:', username);
+                    response = await ApiService.register({ username, email, password });
+                } else {
+                    // Login existing user  
+                    console.log('🚀 Attempting user login:', username);
+                    response = await ApiService.login({ username, password });
+                }
+                
+                console.log('📡 Auth response:', response);
+                
+                if (response && response.success) {
+                    // Set current user from API response
+                    APP_STATE.currentUser = {
+                        ...response.user,
+                        avatar: '👤',
+                        bio: '',
+                        followers: 0
+                    };
+                    
+                    saveAppData('currentUser', APP_STATE.currentUser);
+                    updateAuthButton();
+                    closeModal();
+                    showToast(`Welcome, ${username}!`, 'success');
+                    
+                    // Add to activity
+                    addActivityItem('follow', `${username} ${mode === 'signup' ? 'joined' : 'signed in to'} the platform`);
+                    
+                    console.log('✅ Authentication successful');
+                } else {
+                    // API failed - try local auth as fallback
+                    console.warn('⚠️ API auth failed, using local auth');
+                    handleLocalAuth(username, email || username);
+                }
+            } catch (error) {
+                console.error('❌ Authentication error:', error);
+                showToast('Authentication failed. Please try again.', 'error');
+            }
+        }
+        
+        function handleLocalAuth(username, email) {
             APP_STATE.currentUser = {
                 id: 'user_' + Date.now(),
                 username,
@@ -2622,10 +2682,32 @@
             saveAppData('currentUser', APP_STATE.currentUser);
             updateAuthButton();
             closeModal();
-            showToast(`Welcome, ${username}!`, 'success');
+            showToast(`Welcome, ${username}! (Local mode)`, 'success');
             
             // Add to activity
             addActivityItem('follow', `${username} joined the platform`);
+        }
+        
+        function showAuthMenu() {
+            const modal = createModal('Welcome to AI Learning Hub', `
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 1rem;">Join the Community</h3>
+                    <p style="margin-bottom: 2rem; opacity: 0.8;">Sign in to your account or create a new one to start collaborating!</p>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" onclick="closeModal(); showAuthModal('login')" style="flex: 1;">
+                        🔑 Sign In
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeModal(); showAuthModal('signup')" style="flex: 1;">
+                        📝 Sign Up
+                    </button>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; opacity: 0.7;">
+                    <p>Create an account to save your progress and collaborate with other learners!</p>
+                </div>
+            `);
         }
         
         function updateAuthButton() {
@@ -2635,7 +2717,7 @@
                 btn.onclick = showUserMenu;
             } else {
                 btn.textContent = 'Sign In';
-                btn.onclick = showAuthModal;
+                btn.onclick = showAuthMenu;
             }
         }
         
