@@ -8,6 +8,12 @@ if (typeof ApiService === 'undefined') {
   const ApiService = {
     // Generic fetch wrapper
     async request(endpoint, options = {}) {
+      // If API URL is null/disabled, return null to trigger localStorage fallback
+      if (!AI_API_URL || AI_API_URL === null) {
+        console.log('📦 API disabled - using localStorage fallback for:', endpoint);
+        return null;
+      }
+      
       try {
         const response = await fetch(`${AI_API_URL}${endpoint}`, {
           headers: {
