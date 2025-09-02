@@ -3032,21 +3032,36 @@
                 return;
             }
             
-            // Try API delete first
-            const deleted = await ApiService.deleteDiscussion(discussionId, APP_STATE.currentUser.id);
-            
-            if (deleted || ApiService.request === null) {
-                // Remove from local state regardless of API success (for offline functionality)
-                APP_STATE.discussions = APP_STATE.discussions.filter(d => d.id !== discussionId);
-                saveAppData('discussions', APP_STATE.discussions);
+            try {
+                // Try API delete first
+                console.log('🚀 Attempting API delete for discussion:', discussionId);
+                const deleted = await ApiService.deleteDiscussion(discussionId, APP_STATE.currentUser.id);
+                console.log('📡 API delete response:', deleted);
                 
-                // Add to activity feed
-                addActivityItem('delete', `${APP_STATE.currentUser.username} deleted a discussion: "${discussion.title}"`);
-                
-                renderDiscussions();
-                showToast('Discussion deleted successfully!', 'success');
-            } else {
-                showToast('Failed to delete discussion. Please try again.', 'error');
+                if (deleted !== false && deleted !== null) {
+                    // API success - remove from local state
+                    APP_STATE.discussions = APP_STATE.discussions.filter(d => d.id !== discussionId);
+                    saveAppData('discussions', APP_STATE.discussions);
+                    
+                    // Add to activity feed
+                    addActivityItem('delete', `${APP_STATE.currentUser.username} deleted a discussion: "${discussion.title}"`);
+                    
+                    renderDiscussions();
+                    showToast('Discussion deleted successfully!', 'success');
+                    console.log('✅ Discussion deleted successfully');
+                } else {
+                    // API failed - try local delete anyway (offline mode)
+                    console.warn('⚠️ API delete failed, trying local delete');
+                    APP_STATE.discussions = APP_STATE.discussions.filter(d => d.id !== discussionId);
+                    saveAppData('discussions', APP_STATE.discussions);
+                    
+                    renderDiscussions();
+                    showToast('Discussion deleted locally (API unavailable)', 'success');
+                    console.log('✅ Discussion deleted locally');
+                }
+            } catch (error) {
+                console.error('❌ Error during delete:', error);
+                showToast('Error deleting discussion: ' + error.message, 'error');
             }
         }
         

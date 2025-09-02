@@ -55,18 +55,25 @@ if (typeof ApiService === 'undefined') {
     },
 
     async deleteDiscussion(discussionId, userId) {
+      console.log('🔄 ApiService.deleteDiscussion called with:', { discussionId, userId });
+      
       const deleted = await this.request(`/discussions/${discussionId}`, {
         method: 'DELETE',
         body: JSON.stringify({ userId })
       });
       
-      if (deleted) {
+      console.log('🔄 Delete request response:', deleted);
+      
+      if (deleted && deleted.success) {
         // Remove from localStorage
         const discussions = JSON.parse(localStorage.getItem('aiHub_discussions') || '[]');
         const updatedDiscussions = discussions.filter(d => d.id !== discussionId);
         localStorage.setItem('aiHub_discussions', JSON.stringify(updatedDiscussions));
+        console.log('✅ ApiService delete successful');
         return true;
       }
+      
+      console.warn('⚠️ ApiService delete failed:', deleted);
       return false;
     },
 
