@@ -2972,10 +2972,13 @@
             };
             
             // Try to create via API first
+            console.log('🚀 Attempting to create discussion via API:', discussionData.title);
             let newDiscussion = await ApiService.createDiscussion(discussionData);
+            console.log('📡 API create response:', newDiscussion);
             
             // If API fails, create locally
             if (!newDiscussion) {
+                console.warn('⚠️ API creation failed, creating locally');
                 newDiscussion = {
                     id: 'disc_' + Date.now(),
                     ...discussionData,
