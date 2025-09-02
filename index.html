@@ -6898,9 +6898,9 @@
         };
         document.head.appendChild(script);
         
-        // API Configuration - Temporarily disabled until backend deploys properly
-        console.log('⚠️ Backend still deploying - using localStorage mode');
-        window.AI_HUB_API_URL = null; // Temporarily disable until Render updates
+        // API Configuration - BACKEND IS WORKING! Cross-user sharing enabled
+        console.log('🎉 Backend is working! Cross-user sharing enabled');
+        window.AI_HUB_API_URL = 'https://ai-learning-hub-api.onrender.com/api';
 
         // Load discussions with API
         async function loadDiscussionsWithAPI() {
