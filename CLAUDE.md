@@ -65,9 +65,10 @@ This is an AI Learning Hub application with a hybrid architecture:
 
 ### Frontend Auth Flow
 - **Sign In Button** → Auth menu with separate Login/Signup buttons
-- **Signup Form**: Username + Email + Password
-- **Login Form**: Username + Password only
-- **Error Messages**: Specific validation errors from backend
+- **Signup Form**: Username + Email + Password + Confirm Password
+- **Login Form**: Username + Password only (no confirmation needed)
+- **Password Validation**: Passwords must match exactly before API submission
+- **Error Messages**: Specific validation errors from backend and client-side validation
 - **Auto-redirect**: Offers to switch to login when signup fails due to existing account
 
 ## Deployment Configuration
@@ -163,6 +164,15 @@ git add . && git commit -m "message" && git push origin main
 - Implemented proper error handling for "Username already taken" / "Invalid password"
 - Added automatic redirect suggestions when signup fails due to existing account
 - Password validation prevents unauthorized access to existing accounts
+
+### Problem 7: Password Confirmation for Account Creation
+**Issue**: Users could make typos when creating passwords, leading to login issues
+**Solution**:
+- Added password confirmation field to signup form only (not login)
+- Added client-side validation to ensure passwords match before API submission
+- Account creation only proceeds when passwords match AND username/email are unique
+- Clear error message "Passwords do not match. Please try again." if mismatch
+- Improves user experience and prevents password entry errors
 
 ## Technical Implementation Details
 
