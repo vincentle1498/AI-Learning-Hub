@@ -2848,12 +2848,13 @@
                                     ${discussion.category}
                                 </span>
                                 ${isOwner ? `
-                                    <button onclick="event.stopPropagation(); deleteDiscussion('${discussion.id}')" 
+                                    <button onclick="event.stopPropagation(); console.log('Delete button clicked for:', '${discussion.id}'); deleteDiscussion('${discussion.id}')" 
                                             style="background: rgba(239,68,68,0.2); color: #ef4444; border: none; 
                                                    border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; 
-                                                   cursor: pointer; transition: all 0.2s;"
+                                                   cursor: pointer; transition: all 0.2s; position: relative; z-index: 10;"
                                             onmouseover="this.style.background='rgba(239,68,68,0.3)'"
-                                            onmouseout="this.style.background='rgba(239,68,68,0.2)'">
+                                            onmouseout="this.style.background='rgba(239,68,68,0.2)'"
+                                            title="Delete this discussion">
                                         🗑️ Delete
                                     </button>
                                 ` : ''}
@@ -3001,10 +3002,15 @@
         }
         
         async function deleteDiscussion(discussionId) {
+            console.log('🚀 deleteDiscussion called with ID:', discussionId);
+            
             if (!APP_STATE.currentUser) {
+                console.error('❌ No current user found');
                 showToast('You must be logged in to delete discussions', 'error');
                 return;
             }
+            
+            console.log('✅ Current user:', APP_STATE.currentUser.username);
             
             const discussion = APP_STATE.discussions.find(d => d.id === discussionId);
             if (!discussion) {
