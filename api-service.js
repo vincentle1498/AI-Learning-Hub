@@ -8,6 +8,7 @@ if (typeof ApiService === 'undefined') {
   const ApiService = {
     // Generic fetch wrapper
     async request(endpoint, options = {}) {
+      
       try {
         const response = await fetch(`${AI_API_URL}${endpoint}`, {
           headers: {
@@ -28,6 +29,7 @@ if (typeof ApiService === 'undefined') {
         return null;
       }
     },
+
 
     // Discussions
     async getDiscussions() {

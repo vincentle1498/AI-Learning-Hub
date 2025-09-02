@@ -6898,9 +6898,9 @@
         };
         document.head.appendChild(script);
         
-        // API Configuration - Re-enabled with working simple server
-        console.log('✅ API enabled with working simple server backend');
-        window.AI_HUB_API_URL = 'https://ai-learning-hub-api.onrender.com/api';
+        // API Configuration - Temporarily disabled until backend deploys properly
+        console.log('⚠️ Backend still deploying - using localStorage mode');
+        window.AI_HUB_API_URL = null; // Temporarily disable until Render updates
 
         // Load discussions with API
         async function loadDiscussionsWithAPI() {
