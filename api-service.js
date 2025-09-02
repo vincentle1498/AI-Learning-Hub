@@ -152,6 +152,27 @@ if (typeof ApiService === 'undefined') {
         return room;
       }
       return null;
+    },
+
+    // Authentication
+    async register(userData) {
+      console.log('🔄 ApiService.register called with:', userData.username);
+      const response = await this.request('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      });
+      console.log('🔄 Register response:', response);
+      return response;
+    },
+
+    async login(credentials) {
+      console.log('🔄 ApiService.login called with:', credentials.username);
+      const response = await this.request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials)
+      });
+      console.log('🔄 Login response:', response);
+      return response;
     }
   };
 
