@@ -54,13 +54,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Test endpoint to verify deployment
+// Test endpoint to verify deployment - FORCE UPDATE
 app.get('/api/test', (req, res) => {
   res.json({
     test: 'SUCCESS',
-    message: 'New simple backend is deployed and working!',
+    message: 'New simple backend is deployed and working! (Updated)',
     discussions_available: discussions.length > 0,
-    endpoints_working: true
+    endpoints_working: true,
+    deployment_time: new Date().toISOString()
   });
 });
 
