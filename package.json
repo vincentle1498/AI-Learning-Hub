@@ -4,8 +4,8 @@
   "description": "Simple backend for AI Learning Hub",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node app.js",
+    "dev": "node app.js"
   },
   "dependencies": {
     "express": "^4.18.2",
