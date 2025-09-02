@@ -2661,6 +2661,16 @@
                     // Show specific error message from backend
                     console.error('❌ Authentication failed:', response.error);
                     showToast(response.error, 'error');
+                    
+                    // If backend suggests redirecting to login, offer to do so
+                    if (response.redirect === 'login' && mode === 'signup') {
+                        setTimeout(() => {
+                            if (confirm('Would you like to go to the login page instead?')) {
+                                closeModal();
+                                showAuthModal('login');
+                            }
+                        }, 2000);
+                    }
                 } else {
                     // Network error or unknown issue
                     console.warn('⚠️ API auth failed, using local auth fallback');
