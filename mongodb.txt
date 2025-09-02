@@ -1,2 +1,17 @@
-mongodb+srv://vincentle1498:Kptmis95@21@vincentdle.abmubzw.mongodb.net/ai-learning-hub?retryWrites=true&w=majority&appName=vincentdle
+DATABASE_URL:postgresql://postgres.snxcxrdhqojfnwtjqaiu:Lenguyen0376845%21@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require
 
+FRONTEND_URL:https://ai-learning-hubs.netlify.app
+
+HAPPY_EYEBALLS: false
+
+JWT_SECRET: 7ef46739d34a6981bb80ee61fc480336
+
+NODE_ENV: production
+
+NODE_OPTIONS: --dns-result-order=ipv4first
+
+RENDER: true
+
+SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNueGN4cmRocW9qZm53dGpxYWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NTI4NTMsImV4cCI6MjA3MjMyODg1M30.c22JlFsoRsi1gE6-D_1K8hG1r0THr39-LEyVDfODGCM
+
+SUPABASE_URL: https://snxcxrdhqojfnwtjqaiu.supabase.co
