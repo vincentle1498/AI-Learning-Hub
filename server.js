@@ -5,176 +5,130 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://ai-learning-hubs.netlify.app', 'https://ailearninghubs.netlify.app', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
 
-// In-memory storage (no database needed for now)
-let storage = {
-  users: [],
-  projects: [],
-  discussions: [],
-  lessons: [],
-  rooms: []
-};
+// In-memory storage (simple but working for cross-user sharing)
+let discussions = [
+  {
+    id: 'disc_sample1',
+    title: 'Welcome to AI Learning Hub!',
+    content: 'This is a sample discussion to test cross-user sharing. Feel free to delete this if you see it!',
+    author: 'System',
+    authorId: 'system',
+    category: 'general',
+    tags: ['welcome', 'test'],
+    created: new Date().toISOString(),
+    replies: 0,
+    repliesData: []
+  }
+];
 
-// ============= API ROUTES =============
+let projects = [];
+let lessons = [];
+let rooms = [];
 
 // Health check
 app.get('/', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'AI Learning Hub Backend API is running!',
+    message: 'AI Learning Hub API is running',
+    server: 'simple-server',
     timestamp: new Date().toISOString(),
-    endpoints: {
-      health: '/api/health',
-      projects: '/api/projects',
-      discussions: '/api/discussions',
-      lessons: '/api/lessons',
-      rooms: '/api/rooms'
-    }
+    endpoints: ['/api/discussions', '/api/projects', '/api/lessons', '/api/rooms']
   });
 });
 
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'API is healthy',
-    uptime: process.uptime()
+    message: 'AI Learning Hub API is running',
+    discussions_count: discussions.length,
+    projects_count: projects.length
   });
-});
-
-// ----------- USER ROUTES -----------
-app.post('/api/auth/register', async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-    
-    // Check if user exists
-    const existingUser = storage.users.find(u => u.username === username || u.email === email);
-    if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
-    
-    // Create user
-    const user = {
-      id: 'user_' + Date.now(),
-      username,
-      email,
-      password, // In production, hash this!
-      created: new Date().toISOString()
-    };
-    
-    storage.users.push(user);
-    
-    res.json({ 
-      success: true, 
-      user: { id: user.id, username: user.username, email: user.email }
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    
-    const user = storage.users.find(u => u.username === username);
-    if (!user || user.password !== password) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-    
-    res.json({ 
-      success: true, 
-      user: { id: user.id, username: user.username, email: user.email }
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ----------- PROJECT ROUTES -----------
-app.get('/api/projects', (req, res) => {
-  res.json(storage.projects);
-});
-
-app.post('/api/projects', (req, res) => {
-  try {
-    const project = {
-      id: 'proj_' + Date.now(),
-      ...req.body,
-      created: new Date().toISOString(),
-      likes: 0,
-      stars: 0
-    };
-    
-    storage.projects.unshift(project);
-    res.json(project);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.put('/api/projects/:id', (req, res) => {
-  try {
-    const index = storage.projects.findIndex(p => p.id === req.params.id);
-    if (index === -1) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-    
-    storage.projects[index] = { ...storage.projects[index], ...req.body };
-    res.json(storage.projects[index]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.delete('/api/projects/:id', (req, res) => {
-  try {
-    storage.projects = storage.projects.filter(p => p.id !== req.params.id);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 });
 
 // ----------- DISCUSSION ROUTES -----------
 app.get('/api/discussions', (req, res) => {
-  res.json(storage.discussions);
+  try {
+    console.log(`📋 GET /api/discussions - returning ${discussions.length} discussions`);
+    res.json(discussions);
+  } catch (error) {
+    console.error('❌ Error getting discussions:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post('/api/discussions', (req, res) => {
   try {
     const discussion = {
-      id: 'disc_' + Date.now(),
+      id: 'disc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
       ...req.body,
       created: new Date().toISOString(),
       replies: 0,
       repliesData: []
     };
     
-    storage.discussions.unshift(discussion);
+    discussions.unshift(discussion);
+    console.log(`✅ POST /api/discussions - created discussion: ${discussion.title}`);
     res.json(discussion);
+  } catch (error) {
+    console.error('❌ Error creating discussion:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/discussions/:id', (req, res) => {
+  try {
+    const discussionIndex = discussions.findIndex(d => d.id === req.params.id);
+    if (discussionIndex === -1) {
+      return res.status(404).json({ error: 'Discussion not found' });
+    }
+    
+    // Check ownership (basic security)
+    const discussion = discussions[discussionIndex];
+    const { userId } = req.body;
+    
+    console.log(`🗑️ DELETE attempt - Discussion author: ${discussion.authorId}, Requester: ${userId}`);
+    
+    if (discussion.authorId !== userId && discussion.author !== userId) {
+      return res.status(403).json({ error: 'Unauthorized - can only delete own discussions' });
+    }
+    
+    // Remove the discussion
+    const deletedDiscussion = discussions.splice(discussionIndex, 1)[0];
+    console.log(`✅ DELETE /api/discussions/${req.params.id} - deleted: ${deletedDiscussion.title}`);
+    res.json({ success: true, message: 'Discussion deleted', discussion: deletedDiscussion });
+  } catch (error) {
+    console.error('❌ Error deleting discussion:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ----------- PROJECT ROUTES -----------
+app.get('/api/projects', (req, res) => {
+  try {
+    res.json(projects);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post('/api/discussions/:id/reply', (req, res) => {
+app.post('/api/projects', (req, res) => {
   try {
-    const discussion = storage.discussions.find(d => d.id === req.params.id);
-    if (!discussion) {
-      return res.status(404).json({ error: 'Discussion not found' });
-    }
-    
-    const reply = {
-      id: 'reply_' + Date.now(),
+    const project = {
+      id: 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
       ...req.body,
-      created: new Date().toISOString()
+      created: new Date().toISOString(),
+      likes: 0,
+      stars: 0
     };
     
-    discussion.repliesData.push(reply);
-    discussion.replies = discussion.repliesData.length;
-    res.json(discussion);
+    projects.unshift(project);
+    res.json(project);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -182,20 +136,22 @@ app.post('/api/discussions/:id/reply', (req, res) => {
 
 // ----------- LESSON ROUTES -----------
 app.get('/api/lessons', (req, res) => {
-  res.json(storage.lessons);
+  try {
+    res.json(lessons);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post('/api/lessons', (req, res) => {
   try {
     const lesson = {
-      id: 'lesson_' + Date.now(),
+      id: 'lesson_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
       ...req.body,
-      created: new Date().toISOString(),
-      views: 0,
-      completions: 0
+      created: new Date().toISOString()
     };
     
-    storage.lessons.unshift(lesson);
+    lessons.unshift(lesson);
     res.json(lesson);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -204,50 +160,38 @@ app.post('/api/lessons', (req, res) => {
 
 // ----------- ROOM ROUTES -----------
 app.get('/api/rooms', (req, res) => {
-  res.json(storage.rooms);
+  try {
+    res.json(rooms);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post('/api/rooms', (req, res) => {
   try {
     const room = {
-      id: 'room_' + Date.now(),
+      id: 'room_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
       ...req.body,
       created: new Date().toISOString(),
-      participants: [req.body.owner],
-      status: 'active'
+      participants: []
     };
     
-    storage.rooms.unshift(room);
+    rooms.unshift(room);
     res.json(room);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.put('/api/rooms/:id/join', (req, res) => {
-  try {
-    const room = storage.rooms.find(r => r.id === req.params.id);
-    if (!room) {
-      return res.status(404).json({ error: 'Room not found' });
-    }
-    
-    if (!room.participants.includes(req.body.username)) {
-      room.participants.push(req.body.username);
-    }
-    res.json(room);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Error handling
+// Catch all errors
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  console.error('🚨 Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`🌐 Visit: http://localhost:${PORT}`);
+  console.log(`✅ AI Learning Hub API running on port ${PORT}`);
+  console.log(`🌐 Server: simple in-memory backend`);
+  console.log(`📋 Initial discussions: ${discussions.length}`);
 });
