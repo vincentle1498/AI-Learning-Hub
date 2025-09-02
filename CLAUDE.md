@@ -7,17 +7,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is an AI Learning Hub application with a hybrid architecture:
 
 - **Frontend**: Single-page application in `index.html` (~7K lines) with inline JavaScript, CSS, and HTML
-- **Backend**: Express.js API with two deployment configurations:
-  - Simple in-memory version (`server.js` in root) 
-  - MongoDB version (`backend/server.js`) for persistent data
-- **API Integration**: Client-side API service embedded in `index.html` with fallback to localStorage
+- **Backend**: Express.js API deployed on Render with in-memory storage
+- **API Integration**: Client-side API service in `api-service.js` with localStorage fallback
+- **Repositories**: Frontend and backend in separate GitHub repositories
 
 ## Key Components
 
 ### Frontend Structure
 - Main application code embedded in `index.html` with sections for:
   - Project showcase and creation
-  - Discussion forums 
+  - Discussion forums with delete functionality
   - Interactive lessons
   - Study rooms and collaboration tools
   - User authentication and profiles
@@ -25,82 +24,208 @@ This is an AI Learning Hub application with a hybrid architecture:
 - Theme system with light/dark modes
 - Real-time features (Pomodoro timer, notifications, calendar)
 
-### Backend Options
-- **Development/Simple**: Uses `server.js` with in-memory storage
-- **Production**: Uses `backend/server.js` with Supabase integration
-- API endpoints for users, projects, discussions, lessons, and study rooms
+### Backend Architecture
+- **Production**: Simple Express.js server with in-memory storage
+- **Repository**: `github.com/vincentle1498/ai-learning-hub-backend`
+- **Deployment**: Render.com with automatic GitHub integration
+- **Storage**: In-memory arrays for users, discussions, projects, lessons, rooms
+- **Authentication**: Username/email uniqueness validation with password protection
 
 ### Data Flow
-- Hybrid data persistence: API-first with localStorage fallback
-- API calls handled by embedded `ApiService` in `index.html`
-- Backend attempts Supabase integration but currently uses localStorage fallback
-- Automatic fallback ensures app works offline or when backend is down
+- API-first architecture with localStorage fallback
+- Cross-user sharing via backend API
+- Real-time synchronization between all users
+- Offline functionality when API unavailable
+
+## API Integration
+
+### Frontend API Service
+- Located in `api-service.js` (external file)
+- Loaded dynamically with cache-busting: `api-service.js?bust=timestamp`
+- Comprehensive methods for all content types and authentication
+- Automatic fallback to localStorage when API fails
+
+### Backend Endpoints
+- **Authentication**: `/api/auth/register`, `/api/auth/login`
+- **Discussions**: GET/POST/DELETE `/api/discussions`
+- **Projects**: GET/POST `/api/projects`  
+- **Lessons**: GET/POST `/api/lessons`
+- **Rooms**: GET/POST `/api/rooms`
+- **Health Check**: `/api/health`, `/api/test`
+
+## Authentication System
+
+### User Account Management
+- **Registration**: Requires unique username, email, password
+- **Login**: Username/email + password validation
+- **Duplicate Prevention**: Backend validates uniqueness, shows specific error messages
+- **Error Handling**: "Username already taken" → redirects to login page
+- **Password Validation**: Must use correct password for existing accounts
+- **Persistence**: Accounts stored on backend, remembered across sessions
+
+### Frontend Auth Flow
+- **Sign In Button** → Auth menu with separate Login/Signup buttons
+- **Signup Form**: Username + Email + Password
+- **Login Form**: Username + Password only
+- **Error Messages**: Specific validation errors from backend
+- **Auto-redirect**: Offers to switch to login when signup fails due to existing account
+
+## Deployment Configuration
+
+### Frontend Deployment (Netlify)
+- **Repository**: `github.com/vincentle1498/AI-Learning-Hub`
+- **Site**: `https://ailearninghubs.netlify.app`
+- **Auto-deploy**: From GitHub main branch
+- **Files**: Static deployment of `index.html` + `api-service.js`
+
+### Backend Deployment (Render)
+- **Repository**: `github.com/vincentle1498/ai-learning-hub-backend` 
+- **API**: `https://ai-learning-hub-api.onrender.com`
+- **Configuration**: `render.yaml` with `npm start` → `node server.js`
+- **Storage**: In-memory (resets on deployment but enables cross-user sharing)
+- **Dependencies**: Only Express.js and CORS (no database dependencies)
 
 ## Common Development Commands
 
 ### Frontend Development
-- Open `index.html` directly in browser for local testing
-- No build process required - pure HTML/CSS/JS
+```bash
+# No build process required - direct file editing
+# Open index.html directly in browser for local testing
+```
 
 ### Backend Development
 ```bash
-# Simple backend (in-memory)
+# Local testing
 node server.js
 
-# Full backend with Supabase
-cd backend
-npm install
-npm run dev        # Uses nodemon for development
-npm start          # Production start
+# Check API health
+curl https://ai-learning-hub-api.onrender.com/api/health
 ```
 
-### Testing API Integration
-- API URL configured in `index.html` as `AI_HUB_API_URL` variable around line 6730
-- Local backend: `http://localhost:5000/api`
-- Production: `https://ai-learning-hub-api.onrender.com/api`
-- Current setup uses localStorage fallback due to backend API issues
-
-## Deployment Configuration
-
-### Backend Deployment (Render)
-- Uses `render.yaml` configuration
-- Environment variables: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `NODE_VERSION`
-- Automatic deployment from GitHub integration
-
-### Frontend Deployment (Netlify)
-- Static site deployment of `index.html` (with embedded API integration)
-- Connected to GitHub repository: `github.com/vincentle1498/AI-Learning-Hub`
-- Auto-deploys from GitHub pushes
-- No build process required
-
-## Environment Setup
-
-### Required Environment Variables (Backend)
+### Deployment
 ```bash
-SUPABASE_URL=https://...supabase.co     # Supabase project URL
-SUPABASE_ANON_KEY=eyJhbG...             # Supabase anonymous key
-PORT=5000                               # Server port (auto-set by Render)
+# Frontend: Push to main branch - auto-deploys to Netlify
+git add . && git commit -m "message" && git push origin main
+
+# Backend: Must be pushed to separate repository
+cd ../ai-learning-hub-backend-temp
+git add . && git commit -m "message" && git push origin main
 ```
 
-### Database Schema (Supabase PostgreSQL)
-- Users: username, email, password, created
-- Projects: title, description, category, tech stack, files, metrics
-- Discussions: title, content, category, tags, replies
-- Additional tables for lessons and study rooms
+## Recent Problems Solved & Solutions
 
-## File Organization
+### Problem 1: Discussion Posting and Deletion
+**Issue**: Users wanted to post discussions visible to others and delete their own posts
+**Solution**: 
+- Enhanced `createDiscussion()` to use API with localStorage fallback
+- Added `deleteDiscussion()` with ownership validation and confirmation prompts
+- Added delete buttons (🗑️) visible only to discussion authors
+- Implemented proper event handling with `event.stopPropagation()`
 
-- `index.html` - Complete frontend application with embedded API integration
-- `server.js` - Simple backend (in-memory storage)
-- `backend/` - Production backend with database persistence (has compatibility issues)
-- `simple-server.js` - Alternative simple backend solution
-- `SUPABASE_DEPLOY.md` - Database deployment guide
-- `*.md` files - Deployment and setup documentation
+### Problem 2: Cross-User Visibility  
+**Issue**: All content stored locally, users couldn't see each other's posts
+**Solution**:
+- Created comprehensive API integration for all content types
+- Updated all creation functions to use API-first approach
+- Added automatic data loading from API on page load
+- Implemented hybrid approach: API for sharing + localStorage for offline
 
-## Current Status
+### Problem 3: JavaScript Cache Conflicts
+**Issue**: Persistent `"Identifier 'API_URL' has already been declared"` errors
+**Solution**:
+- Moved API integration to separate `api-service.js` file
+- Added dynamic script loading with timestamp cache-busting
+- Created compatibility layer for cached files
+- Used different variable names to avoid conflicts
 
-- ✅ Frontend working properly with no JavaScript errors
-- ✅ App fully functional using localStorage for data persistence  
-- ⚠️ Backend API has database compatibility issues (500 errors)
-- ✅ Fallback to localStorage ensures app continues to work
-- 🌐 Live at: https://ai-learning-hubs.netlify.app
+### Problem 4: Backend Deployment Issues
+**Issue**: Render deployment not updating despite manual deploys and code changes
+**Root Cause**: Render was connected to wrong repository (`ai-learning-hub-backend` vs `AI-Learning-Hub`)
+**Solution**:
+- Identified repository mismatch through health endpoint version checking  
+- Deployed working simple backend to correct repository
+- Replaced complex Supabase backend with simple in-memory storage
+- Eliminated database dependencies causing 500 errors
+
+### Problem 5: Unclickable Delete Buttons
+**Issue**: Delete buttons visible but not responding to clicks
+**Solution**:
+- Removed conflicting onclick handlers from wrapper elements
+- Added proper z-index and positioning
+- Used `event.stopPropagation()` to prevent click conflicts
+- Added visual improvements (solid background, hover effects)
+
+### Problem 6: User Authentication & Account Persistence
+**Issue**: No persistent user accounts, multiple users could have same username
+**Solution**:
+- Added backend user storage with uniqueness validation
+- Created separate login/signup forms with different fields
+- Implemented proper error handling for "Username already taken" / "Invalid password"
+- Added automatic redirect suggestions when signup fails due to existing account
+- Password validation prevents unauthorized access to existing accounts
+
+## Technical Implementation Details
+
+### API Service Architecture
+- **Location**: `api-service.js` (separate file for cache management)
+- **Loading**: Dynamic with cache-busting timestamps
+- **Error Handling**: Preserves backend error messages for proper user feedback
+- **Fallback**: Automatic localStorage fallback for offline functionality
+- **Methods**: Complete CRUD operations for all content types + authentication
+
+### Discussion System
+- **Creation**: API-first with localStorage fallback
+- **Deletion**: API-based with ownership validation (authorId + username check)
+- **Rendering**: Dynamic delete buttons only for discussion owners
+- **Cross-user**: Real-time sharing via backend API
+- **Ownership**: Dual validation (authorId and author username for compatibility)
+
+### Authentication Flow
+1. **User clicks "Sign In"** → Shows auth menu (Login vs Signup)
+2. **Signup**: Username + Email + Password → Backend validates uniqueness
+3. **Login**: Username + Password → Backend validates credentials  
+4. **Errors**: Specific messages with action guidance (redirect to login/signup)
+5. **Success**: User stored in APP_STATE and localStorage for persistence
+
+## Troubleshooting Guide
+
+### Cache Issues
+- **Problem**: Browser loading old JavaScript files
+- **Solution**: Use cache-busting timestamps in script URLs
+- **Nuclear option**: Rename files completely (e.g., `api-integration.js` → `api-service.js`)
+
+### Backend Deployment Issues  
+- **Problem**: Render not updating despite manual deployment
+- **Check**: Verify repository connection and correct branch
+- **Check**: Health endpoint version info to confirm deployment
+- **Solution**: Use separate repositories for clear separation
+
+### Authentication Errors
+- **"Username already taken"**: User should use login instead of signup
+- **"Invalid password"**: User entered wrong password for existing account  
+- **"Network error"**: Backend deployment issue or API connection problem
+
+### Cross-User Sharing Not Working
+- **Check**: API_HUB_API_URL is not null in browser console
+- **Check**: Console shows API calls, not localStorage fallback messages
+- **Check**: Backend health endpoint returns current version info
+- **Solution**: Ensure both frontend and backend are deployed and connected
+
+## Development Best Practices
+
+1. **Always test in incognito mode** to verify cross-user functionality
+2. **Check browser console** for API call logs and error messages  
+3. **Use separate repositories** for frontend and backend deployments
+4. **Add comprehensive logging** for debugging deployment and API issues
+5. **Implement graceful fallbacks** (localStorage when API unavailable)
+6. **Version your deployments** to track which code is actually running
+7. **Manual deployment** on Render when auto-deployment fails
+
+## Important Implementation Notes
+
+- **API Integration**: Uses external `api-service.js` to avoid cache conflicts
+- **Authentication**: Stored on backend, not localStorage (persistent across devices)
+- **Error Handling**: Preserves and displays specific backend error messages
+- **Ownership Validation**: Dual-check (authorId and username) for compatibility
+- **Cache Management**: Timestamp-based cache busting for reliable updates
+- **Repository Structure**: Frontend and backend in separate repos for clean deployment
