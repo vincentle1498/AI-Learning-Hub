@@ -1,5 +1,6 @@
-// API Configuration - Compatible with main app
-const API_URL = window.AI_HUB_API_URL || 'https://ai-learning-hub-api.onrender.com/api';
+// API Configuration - Compatible with main app  
+// Use a different variable name to avoid cache conflicts
+const AI_API_URL = window.AI_HUB_API_URL || 'https://ai-learning-hub-api.onrender.com/api';
 
 // Don't redefine ApiService if it already exists
 if (typeof ApiService === 'undefined') {
@@ -8,7 +9,7 @@ if (typeof ApiService === 'undefined') {
     // Generic fetch wrapper
     async request(endpoint, options = {}) {
       try {
-        const response = await fetch(`${API_URL}${endpoint}`, {
+        const response = await fetch(`${AI_API_URL}${endpoint}`, {
           headers: {
             'Content-Type': 'application/json',
             ...options.headers
