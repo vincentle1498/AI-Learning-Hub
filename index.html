@@ -2603,6 +2603,14 @@
                                placeholder="Enter your password">
                     </div>
                     
+                    ${!isLogin ? `
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="auth-confirm-password" required minlength="6" 
+                               placeholder="Confirm your password">
+                    </div>
+                    ` : ''}
+                    
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
                         ${isLogin ? 'Sign In' : 'Create Account'}
                     </button>
@@ -2623,6 +2631,13 @@
             const username = document.getElementById('auth-username').value.trim();
             const email = mode === 'signup' ? document.getElementById('auth-email')?.value.trim() : '';
             const password = document.getElementById('auth-password').value;
+            const confirmPassword = mode === 'signup' ? document.getElementById('auth-confirm-password')?.value : '';
+            
+            // Password confirmation validation for signup
+            if (mode === 'signup' && password !== confirmPassword) {
+                showToast('Passwords do not match. Please try again.', 'error');
+                return;
+            }
             
             try {
                 let response;
