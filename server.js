@@ -1,211 +1,120 @@
+console.log('🚀 Starting AI Learning Hub Backend...');
+
 const express = require('express');
 const cors = require('cors');
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors({
-  origin: ['https://ai-learning-hubs.netlify.app', 'https://ailearninghubs.netlify.app', 'http://localhost:3000'],
-  credentials: true
-}));
+console.log('✅ Express loaded');
+
+// CORS - Allow all origins for testing
+app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// In-memory storage (simple but working for cross-user sharing)
+console.log('✅ Middleware configured');
+
+// Simple in-memory storage
 let discussions = [
   {
-    id: 'disc_sample1',
-    title: 'Welcome to AI Learning Hub!',
-    content: 'This is a sample discussion to test cross-user sharing. Feel free to delete this if you see it!',
+    id: 'test_disc_' + Date.now(),
+    title: 'Backend is Working!',
+    content: 'If you see this discussion, the backend deployment was successful and cross-user sharing is active!',
     author: 'System',
     authorId: 'system',
     category: 'general',
-    tags: ['welcome', 'test'],
+    tags: ['system', 'test'],
     created: new Date().toISOString(),
     replies: 0,
     repliesData: []
   }
 ];
 
-let projects = [];
-let lessons = [];
-let rooms = [];
+console.log('✅ Data initialized with', discussions.length, 'discussions');
 
-// Health check
+// Root endpoint
 app.get('/', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'AI Learning Hub API is running',
-    server: 'simple-server',
+  console.log('📍 Root endpoint accessed');
+  res.json({
+    status: 'WORKING',
+    message: 'AI Learning Hub Backend is ACTIVE!',
+    version: 'v3.0-DEPLOYED',
     timestamp: new Date().toISOString(),
-    endpoints: ['/api/discussions', '/api/projects', '/api/lessons', '/api/rooms']
+    discussions_count: discussions.length
   });
 });
 
+// Health endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  console.log('📍 Health endpoint accessed');
+  res.json({
+    status: 'OK',
     message: 'AI Learning Hub API is running',
-    version: 'simple-backend-v2.0',
-    server_type: 'in-memory-backend',
+    version: 'v3.0-DEPLOYED',
+    server_type: 'simple-backend',
     discussions_count: discussions.length,
-    projects_count: projects.length,
     timestamp: new Date().toISOString()
   });
 });
 
-// Test endpoint to verify deployment - FORCE UPDATE
+// Test endpoint
 app.get('/api/test', (req, res) => {
+  console.log('📍 Test endpoint accessed');
   res.json({
     test: 'SUCCESS',
-    message: 'New simple backend is deployed and working! (Updated)',
-    discussions_available: discussions.length > 0,
-    endpoints_working: true,
-    deployment_time: new Date().toISOString()
+    message: 'Backend deployment successful!',
+    version: 'v3.0-DEPLOYED',
+    discussions_available: discussions.length > 0
   });
 });
 
-// ----------- DISCUSSION ROUTES -----------
+// GET discussions
 app.get('/api/discussions', (req, res) => {
-  try {
-    console.log(`📋 GET /api/discussions - returning ${discussions.length} discussions`);
-    res.json(discussions);
-  } catch (error) {
-    console.error('❌ Error getting discussions:', error);
-    res.status(500).json({ error: error.message });
-  }
+  console.log('📍 GET /api/discussions - returning', discussions.length, 'discussions');
+  res.json(discussions);
 });
 
+// POST new discussion
 app.post('/api/discussions', (req, res) => {
-  try {
-    const discussion = {
-      id: 'disc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      ...req.body,
-      created: new Date().toISOString(),
-      replies: 0,
-      repliesData: []
-    };
-    
-    discussions.unshift(discussion);
-    console.log(`✅ POST /api/discussions - created discussion: ${discussion.title}`);
-    res.json(discussion);
-  } catch (error) {
-    console.error('❌ Error creating discussion:', error);
-    res.status(500).json({ error: error.message });
-  }
+  console.log('📍 POST /api/discussions');
+  const discussion = {
+    id: 'disc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    ...req.body,
+    created: new Date().toISOString(),
+    replies: 0,
+    repliesData: []
+  };
+  
+  discussions.unshift(discussion);
+  console.log('✅ Created discussion:', discussion.title);
+  res.json(discussion);
 });
 
+// DELETE discussion
 app.delete('/api/discussions/:id', (req, res) => {
-  try {
-    const discussionIndex = discussions.findIndex(d => d.id === req.params.id);
-    if (discussionIndex === -1) {
-      return res.status(404).json({ error: 'Discussion not found' });
-    }
-    
-    // Check ownership (basic security)
-    const discussion = discussions[discussionIndex];
-    const { userId } = req.body;
-    
-    console.log(`🗑️ DELETE attempt - Discussion author: ${discussion.authorId}, Requester: ${userId}`);
-    
-    if (discussion.authorId !== userId && discussion.author !== userId) {
-      return res.status(403).json({ error: 'Unauthorized - can only delete own discussions' });
-    }
-    
-    // Remove the discussion
-    const deletedDiscussion = discussions.splice(discussionIndex, 1)[0];
-    console.log(`✅ DELETE /api/discussions/${req.params.id} - deleted: ${deletedDiscussion.title}`);
-    res.json({ success: true, message: 'Discussion deleted', discussion: deletedDiscussion });
-  } catch (error) {
-    console.error('❌ Error deleting discussion:', error);
-    res.status(500).json({ error: error.message });
+  console.log('📍 DELETE /api/discussions/' + req.params.id);
+  const index = discussions.findIndex(d => d.id === req.params.id);
+  
+  if (index === -1) {
+    console.log('❌ Discussion not found');
+    return res.status(404).json({ error: 'Discussion not found' });
   }
+  
+  const deleted = discussions.splice(index, 1)[0];
+  console.log('✅ Deleted discussion:', deleted.title);
+  res.json({ success: true, message: 'Discussion deleted', discussion: deleted });
 });
 
-// ----------- PROJECT ROUTES -----------
-app.get('/api/projects', (req, res) => {
-  try {
-    res.json(projects);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/projects', (req, res) => {
-  try {
-    const project = {
-      id: 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      ...req.body,
-      created: new Date().toISOString(),
-      likes: 0,
-      stars: 0
-    };
-    
-    projects.unshift(project);
-    res.json(project);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ----------- LESSON ROUTES -----------
-app.get('/api/lessons', (req, res) => {
-  try {
-    res.json(lessons);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/lessons', (req, res) => {
-  try {
-    const lesson = {
-      id: 'lesson_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      ...req.body,
-      created: new Date().toISOString()
-    };
-    
-    lessons.unshift(lesson);
-    res.json(lesson);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ----------- ROOM ROUTES -----------
-app.get('/api/rooms', (req, res) => {
-  try {
-    res.json(rooms);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/rooms', (req, res) => {
-  try {
-    const room = {
-      id: 'room_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      ...req.body,
-      created: new Date().toISOString(),
-      participants: []
-    };
-    
-    rooms.unshift(room);
-    res.json(room);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Catch all errors
-app.use((err, req, res, next) => {
-  console.error('🚨 Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+// Catch all
+app.get('*', (req, res) => {
+  console.log('📍 Unknown endpoint:', req.path);
+  res.status(404).json({ error: 'Endpoint not found', path: req.path });
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`✅ AI Learning Hub API running on port ${PORT}`);
-  console.log(`🌐 Server: simple in-memory backend`);
-  console.log(`📋 Initial discussions: ${discussions.length}`);
+  console.log('🎉 AI Learning Hub Backend running on port', PORT);
+  console.log('🌐 Version: v3.0-DEPLOYED');
+  console.log('📊 Initial discussions:', discussions.length);
 });
+
+console.log('🏁 Server setup complete');
