@@ -2823,11 +2823,13 @@
                 
                 
                 return `
-                    <div class="card" style="margin-bottom: 1rem; position: relative;">
+                    <div class="card discussion-card" style="margin-bottom: 1rem; position: relative; cursor: pointer;" 
+                         onclick="viewDiscussion('${discussion.id}')" 
+                         data-discussion-id="${discussion.id}">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div style="flex: 1;">
-                                <h3 style="color: var(--primary); margin-bottom: 0.5rem; cursor: pointer;" onclick="viewDiscussion('${discussion.id}')">${discussion.title}</h3>
-                                <p style="margin-bottom: 1rem; cursor: pointer;" onclick="viewDiscussion('${discussion.id}')">${discussion.content}</p>
+                                <h3 style="color: var(--primary); margin-bottom: 0.5rem;">${discussion.title}</h3>
+                                <p style="margin-bottom: 1rem;">${discussion.content}</p>
                                 <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
                                     ${discussion.tags.map(tag => `
                                         <span style="padding: 0.25rem 0.5rem; background: rgba(124,58,237,0.2); 
@@ -2842,19 +2844,20 @@
                                     <span>💬 ${discussion.replies} replies</span>
                                 </div>
                             </div>
-                            <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; position: relative;">
                                 <span style="padding: 0.25rem 0.75rem; background: rgba(59,130,246,0.2); 
                                        color: var(--secondary); border-radius: 1rem; font-size: 0.75rem;">
                                     ${discussion.category}
                                 </span>
                                 ${isOwner ? `
-                                    <button onclick="console.log('Delete button clicked for:', '${discussion.id}'); deleteDiscussion('${discussion.id}')" 
-                                            style="background: rgba(239,68,68,0.2); color: #ef4444; border: none; 
-                                                   border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; 
-                                                   cursor: pointer; transition: all 0.2s; position: absolute; z-index: 1000; 
-                                                   right: 0.5rem; margin-top: 0.25rem; min-width: 70px;"
-                                            onmouseover="this.style.background='rgba(239,68,68,0.3)'"
-                                            onmouseout="this.style.background='rgba(239,68,68,0.2)'"
+                                    <button class="delete-btn" 
+                                            onclick="event.stopPropagation(); console.log('Delete button clicked for:', '${discussion.id}'); deleteDiscussion('${discussion.id}')" 
+                                            style="background: rgba(239,68,68,0.8); color: white; border: none; 
+                                                   border-radius: 0.25rem; padding: 0.5rem 0.75rem; font-size: 0.75rem; 
+                                                   cursor: pointer; transition: all 0.2s; font-weight: bold;
+                                                   box-shadow: 0 2px 4px rgba(0,0,0,0.2);"
+                                            onmouseover="this.style.background='rgba(239,68,68,1)'; this.style.transform='scale(1.05)'"
+                                            onmouseout="this.style.background='rgba(239,68,68,0.8)'; this.style.transform='scale(1)'"
                                             title="Delete this discussion">
                                         🗑️ Delete
                                     </button>
