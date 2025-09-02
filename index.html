@@ -13,7 +13,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzdDM0FFRCIKPC9yZWN0Pgo8cGF0aCBkPSJNOCAxMkMxNiAzIDI0IDEyIDI0IDIwQzI0IDIwIDIwIDI0IDE2IDI0QzEyIDI0IDggMjAgOCAyMEM4IDIwIDggMTYgOCAxMloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237C3AED'/%3E%3Ctext x='16' y='20' text-anchor='middle' fill='white' font-size='16' font-family='Arial'%3EAI%3C/text%3E%3C/svg%3E">
     
     <style>
         * { 
@@ -6855,8 +6855,24 @@
     </script>
     
     <!-- API Integration -->
-    <script src="api-service.js"></script>
     <script>
+        // Block any cached api-integration.js from loading
+        if (typeof API_URL !== 'undefined') {
+            console.warn('Detected cached API_URL - clearing it');
+            delete window.API_URL;
+        }
+        
+        // Load the new API service file dynamically to bypass cache
+        const script = document.createElement('script');
+        script.src = 'api-service.js?bust=' + Date.now();
+        script.onload = function() {
+            console.log('✅ Fresh API service loaded successfully');
+        };
+        script.onerror = function() {
+            console.error('❌ Failed to load API service');
+        };
+        document.head.appendChild(script);
+        
         // API Configuration
         window.AI_HUB_API_URL = 'https://ai-learning-hub-api.onrender.com/api';
 
