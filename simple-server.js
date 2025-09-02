@@ -55,6 +55,29 @@ app.post('/api/discussions', (req, res) => {
   }
 });
 
+app.delete('/api/discussions/:id', (req, res) => {
+  try {
+    const discussionIndex = discussions.findIndex(d => d.id === req.params.id);
+    if (discussionIndex === -1) {
+      return res.status(404).json({ error: 'Discussion not found' });
+    }
+    
+    // Check ownership (basic security)
+    const discussion = discussions[discussionIndex];
+    const { userId } = req.body;
+    
+    if (discussion.authorId !== userId && discussion.author !== userId) {
+      return res.status(403).json({ error: 'Unauthorized - can only delete own discussions' });
+    }
+    
+    // Remove the discussion
+    discussions.splice(discussionIndex, 1);
+    res.json({ success: true, message: 'Discussion deleted' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/discussions/:id/reply', (req, res) => {
   try {
     const discussion = discussions.find(d => d.id === req.params.id);

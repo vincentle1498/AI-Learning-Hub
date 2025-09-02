@@ -6879,10 +6879,9 @@
         };
         document.head.appendChild(script);
         
-        // API Configuration - Temporarily disable API due to 500 errors
-        console.warn('⚠️ API temporarily disabled due to backend errors - using localStorage mode');
-        // window.AI_HUB_API_URL = 'https://ai-learning-hub-api.onrender.com/api';
-        window.AI_HUB_API_URL = null; // Force localStorage-only mode
+        // API Configuration - Re-enabled with working simple server
+        console.log('✅ API enabled with working simple server backend');
+        window.AI_HUB_API_URL = 'https://ai-learning-hub-api.onrender.com/api';
 
         // Load discussions with API
         async function loadDiscussionsWithAPI() {
