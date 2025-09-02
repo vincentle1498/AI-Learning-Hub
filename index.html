@@ -2769,6 +2769,7 @@
                         title: 'Best practices for training neural networks',
                         content: 'What are your tips for getting better results when training deep learning models?',
                         author: 'Alice Dev',
+                        authorId: 'sample_user_1',
                         created: new Date(Date.now() - 86400000).toISOString(),
                         replies: 5,
                         category: 'question',
@@ -2779,10 +2780,23 @@
                         title: 'New to AI - Where to start?',
                         content: 'I\'m completely new to AI and machine learning. What resources would you recommend?',
                         author: 'Bob Builder',
+                        authorId: 'sample_user_2',
                         created: new Date(Date.now() - 172800000).toISOString(),
                         replies: 12,
                         category: 'help',
                         tags: ['beginner', 'resources']
+                    },
+                    // Add a test discussion that any logged-in user can delete for testing
+                    {
+                        id: 'disc_test',
+                        title: 'Test Discussion - You Can Delete This',
+                        content: 'This is a test discussion to verify the delete functionality works. Feel free to delete it!',
+                        author: APP_STATE.currentUser ? APP_STATE.currentUser.username : 'Test User',
+                        authorId: APP_STATE.currentUser ? APP_STATE.currentUser.id : 'test_user',
+                        created: new Date().toISOString(),
+                        replies: 0,
+                        category: 'general',
+                        tags: ['test', 'delete-me']
                     }
                 ];
                 saveAppData('discussions', APP_STATE.discussions);
@@ -2802,6 +2816,11 @@
             list.innerHTML = APP_STATE.discussions.map(discussion => {
                 const isOwner = APP_STATE.currentUser && 
                     (discussion.authorId === APP_STATE.currentUser.id || discussion.author === APP_STATE.currentUser.username);
+                
+                // Debug logging
+                console.log('Discussion:', discussion.title, 'Author ID:', discussion.authorId, 'Author:', discussion.author);
+                console.log('Current User:', APP_STATE.currentUser ? APP_STATE.currentUser.username : 'Not logged in', 'ID:', APP_STATE.currentUser ? APP_STATE.currentUser.id : 'None');
+                console.log('Is Owner:', isOwner);
                 
                 return `
                     <div class="card" style="margin-bottom: 1rem; position: relative;">
